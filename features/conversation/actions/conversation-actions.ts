@@ -3,6 +3,7 @@
 import { requireUser } from "@/features/auth/action/require-user";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { isChatModelId, DEFAULT_MODEL_ID } from "@/features/ai/config/models";
 
 /** Shape of a conversation row returned in the sidebar list. */
 export type ConversationListItem = {
@@ -82,6 +83,7 @@ export async function createConversation(title = "New Chat") {
         data: {
             userId: user.id,
             title: title.trim() || "New Chat",
+            model: DEFAULT_MODEL_ID,
         },
     });
 }
@@ -131,4 +133,34 @@ export async function deleteConversation(conversationId: string) {
 
     revalidatePath("/");
     return { id: conversationId };
+}
+
+/**
+ * Sets the model for an empty conversation. Rejected once any message exists.
+ * 
+ * @param conversationId - The conversation to update.
+ * @param modelId - A model ID from the catalog
+ */
+export async function updateConversationModel(conversationId: string, modelId: string) {
+    const user = await requireUser();
+    await assertOwnsConversation(conversationId, user.id);
+
+    if (!isChatModelId(modelId)) {
+        throw new Error("Unknown model");
+    }
+
+    const messageCount = await prisma.message.count({ where: {conversationId}});
+
+    if(messageCount > 0) {
+        throw new Error("Model can only be changed before the first message");
+    }
+
+    const conversation = await prisma.conversation.update({
+        where: { id: conversationId },
+        data: {model: modelId}
+    })
+
+
+    revalidatePath(`/c/${conversationId}`);
+    return conversation;
 }

@@ -2,6 +2,7 @@
 
 import { isTextUIPart, type UIMessage } from "ai";
 import type { ChatStatus } from "ai";
+import { isReasoningUIPart } from "ai";
 
 import {
   Conversation,
@@ -14,14 +15,9 @@ import {
   MessageResponse,
 } from "@/components/ai-elements/message";
 import { Loader } from "@/components/ai-elements/loader";
+import { Reasoning } from "./reasoning";
 
-/** Extracts plain text from a `UIMessage` by joining all text parts. */
-function getMessageText(message: UIMessage) {
-  return message.parts
-    .filter(isTextUIPart)
-    .map((part) => part.text)
-    .join("");
-}
+
 
 type ChatMessagesProps = {
   messages: UIMessage[];
@@ -41,7 +37,15 @@ export function ChatMessages({ messages, status }: ChatMessagesProps) {
         {messages.map((message) => (
           <Message key={message.id} from={message.role}>
             <MessageContent>
-              <MessageResponse>{getMessageText(message)}</MessageResponse>
+              {message.parts.map((part, index) => {
+                if(isReasoningUIPart(part)) {
+                  return <Reasoning key={index} state={part.state ?? "done"} text={part.text} />
+                }
+
+                if(isTextUIPart(part)) {
+                  return <MessageResponse key={index}>{part.text}</MessageResponse>
+                }
+              })}
             </MessageContent>
           </Message>
         ))}
@@ -54,6 +58,7 @@ export function ChatMessages({ messages, status }: ChatMessagesProps) {
           </Message>
         ) : null}
       </ConversationContent>
+      <ConversationScrollButton />
    
     </Conversation>
   );

@@ -98,6 +98,7 @@ function Carousel({
 
   React.useEffect(() => {
     if (!api) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- embla initial-sync pattern (vendored shadcn/ui)
     onSelect(api)
     api.on("reInit", onSelect)
     api.on("select", onSelect)

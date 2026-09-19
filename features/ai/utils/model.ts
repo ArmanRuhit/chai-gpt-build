@@ -1,13 +1,26 @@
-import { openai } from "@ai-sdk/openai";
+import { createProviderRegistry } from "ai"
+import { createOpenAI } from "@ai-sdk/openai"
+import { createDeepSeek } from "@ai-sdk/deepseek"
 
-/** Default OpenAI model used when a conversation has no model override. */
-export const DEFAULT_CHAT_MODEL = "gpt-4o-mini";
+import { DEFAULT_MODEL_ID, isChatModelId, type ChatModelId } from "@/features/ai/config/models"
 
-/**
- * Returns an OpenAI language model instance for chat completions.
- *
- * @param modelId - Optional model identifier; falls back to {@link DEFAULT_CHAT_MODEL}.
- */
+const deepseek = createDeepSeek({
+    apiKey: process.env.DEEPSEEK_API_KEY,
+})
+
+
+const openai = createOpenAI({
+    apiKey: process.env.OPENAI_API_KEY
+})
+
+export const registry = createProviderRegistry(
+    { openai, deepseek },
+    { separator: "/"}
+)
+
+
+
 export function getChatModel(modelId?: string | null) {
-    return openai(modelId || DEFAULT_CHAT_MODEL)
+    const model = modelId && isChatModelId(modelId) ? modelId : DEFAULT_MODEL_ID
+    return registry.languageModel(model as ChatModelId)
 }
