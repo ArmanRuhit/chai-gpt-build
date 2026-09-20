@@ -1,9 +1,10 @@
 import { loadChatMessages, saveChatMessages } from "@/features/ai/actions/chat-store";
+import { chatTools } from "@/features/ai/tools";
 import { getChatModel } from "@/features/ai/utils/model";
 import { requireUser } from "@/features/auth/action/require-user";
 import { prisma } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
-import { convertToModelMessages, createIdGenerator, createUIMessageStreamResponse, streamText, toUIMessageStream, type UIMessage } from "ai";
+import { convertToModelMessages, createIdGenerator, createUIMessageStreamResponse, InvalidToolInputError, isStepCount, NoSuchToolError, streamText, toUIMessageStream, type UIMessage } from "ai";
 /**
  * POST /api/chat — Streams an AI assistant reply for a conversation.
  *
@@ -47,7 +48,14 @@ export async function POST(req: Request) {
     const result =  streamText({
         model: getChatModel(conversation.model),
         system: conversation.systemPrompt ?? "You are ChaiGpt , a helpful assistant",
-        messages: await convertToModelMessages(messages),
+        messages: await convertToModelMessages(messages, {
+            ignoreIncompleteToolCalls: true,
+        }),
+        tools: chatTools,
+        stopWhen: isStepCount(5),
+        onError: ({ error }) => {
+            console.error("[chat] stream error", error);
+        }
     });
 
     result.consumeStream();
@@ -57,6 +65,15 @@ export async function POST(req: Request) {
            stream:result.stream,
            originalMessages:messages,
            generateMessageId:createIdGenerator({prefix:"msg" , size:16}),
+           onError: (error) => {
+            if(NoSuchToolError.isInstance(error)) {
+                return "The model tried to call an unknown tool. Please try again."
+            }
+            if(InvalidToolInputError.isInstance(error)) {
+                return "The model called a tool with invalid inputs. Please try again."
+            }
+            return "Something went wrong while generating the response. Please try againg."
+           },
            onEnd:async({messages:finalMessages})=>{
             try {
                 await saveChatMessages(id , finalMessages , {updateTitle:false})

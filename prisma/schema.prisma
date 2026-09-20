@@ -40,6 +40,7 @@ model Conversation {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   messages Message[]
+  toolCalls ToolCall[]
 
   @@index([userId, lastMessageAt(sort: Desc)])
   @@index([userId, isPinned, lastMessageAt(sort: Desc)])
@@ -73,6 +74,35 @@ model Message {
    createdAt DateTime @default(now())
    updatedAt DateTime @updatedAt
 
+  toolCalls ToolCall[]
+
    @@index([conversationId, createdAt(sort: Desc)])
    
+}
+
+
+enum ToolCallState {
+  PENDING
+  SUCCESS
+  ERROR
+}
+
+model ToolCall {
+  id String @id @default(cuid())
+  conversationId String
+  messageId String?
+  toolCallId String @unique
+  toolName String
+  input Json
+  output Json?
+  state ToolCallState @default(PENDING)
+  errorText String? @db.Text
+  createdAt DateTime @default(now())
+  finishedAt DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  message Message? @relation(fields: [messageId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt(sort: Desc)])
+  @@index([toolName])
 }
