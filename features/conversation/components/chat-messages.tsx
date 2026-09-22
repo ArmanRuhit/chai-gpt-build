@@ -12,11 +12,14 @@ import {
   Message,
   MessageContent,
   MessageResponse,
+  MessageAction,
+  MessageToolbar,
 } from "@/components/ai-elements/message";
 import { Loader } from "@/components/ai-elements/loader";
 import { Reasoning } from "./reasoning";
-import { CircleAlertIcon } from "lucide-react";
+import { CircleAlertIcon, GitBranchIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 
 
@@ -25,12 +28,15 @@ type ChatMessagesProps = {
   status: ChatStatus;
   error?: Error;
   onRetry?: () => void;
+  onBranch?: (messageId: string) => void;
+  branchingMessageId?: string | null;
+  branchDisabled?: boolean;
 };
 
 /**
  * Renders the conversation message list with markdown responses and a loading indicator.
  */
-export function ChatMessages({ messages, status, error, onRetry }: ChatMessagesProps) {
+export function ChatMessages({ messages, status, error, onRetry, onBranch, branchingMessageId, branchDisabled }: ChatMessagesProps) {
   const isWaiting =
     status === "submitted" && messages.at(-1)?.role === "user";
 
@@ -54,6 +60,23 @@ export function ChatMessages({ messages, status, error, onRetry }: ChatMessagesP
                 }
               })}
             </MessageContent>
+
+            {onBranch ? (
+              <MessageToolbar
+                className={cn(
+                  "mt-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100",
+                  message.role === "user" && "justify-end"
+                )}
+              >
+                <MessageAction
+                  disabled={branchDisabled || branchingMessageId === message.id}
+                  onClick={() => onBranch(message.id)}
+                  tooltip="Branch from here"
+                >
+                  <GitBranchIcon />
+                </MessageAction>
+              </MessageToolbar>
+            ) : null}
           </Message>
         ))}
 

@@ -762,6 +762,8 @@ export const ConversationScalarFieldEnum = {
   title: 'title',
   model: 'model',
   systemPrompt: 'systemPrompt',
+  parentConversationId: 'parentConversationId',
+  forkedAtMessageId: 'forkedAtMessageId',
   isPinned: 'isPinned',
   isArchived: 'isArchived',
   createdAt: 'createdAt',

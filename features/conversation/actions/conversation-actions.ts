@@ -14,6 +14,8 @@ export type ConversationListItem = {
     lastMessageAt: Date;
     createdAt: Date;
     updatedAt: Date;
+    parentConversationId: string | null;
+    forkedAtMessageId: string | null;
 };
 
 
@@ -67,6 +69,8 @@ export async function listConversations(): Promise<ConversationListItem[]> {
             lastMessageAt: true,
             createdAt: true,
             updatedAt: true,
+            parentConversationId: true,
+            forkedAtMessageId: true,
         },
     })
 }

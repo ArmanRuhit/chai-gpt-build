@@ -31,6 +31,9 @@ model Conversation {
   title         String   @default("New Chat")
   model         String? // e.g. openai/gpt-4.1 — per-thread model override
   systemPrompt  String?  @db.Text
+  // Branch tree: null for root conversations, set when forked from another chat.
+  parentConversationId String?
+  forkedAtMessageId    String?
   isPinned      Boolean  @default(false)
   isArchived    Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -40,10 +43,13 @@ model Conversation {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   messages Message[]
+  parent Conversation? @relation("ConversationBranches", fields: [parentConversationId], references: [id], onDelete: SetNull)
+  branches Conversation[] @relation("ConversationBranches")
   toolCalls ToolCall[]
 
   @@index([userId, lastMessageAt(sort: Desc)])
   @@index([userId, isPinned, lastMessageAt(sort: Desc)])
+  @@index([parentConversationId])
 }
 
 enum MessageRole {
