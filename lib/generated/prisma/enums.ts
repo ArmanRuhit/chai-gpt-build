@@ -26,3 +26,12 @@ export const MessageStatus = {
 } as const
 
 export type MessageStatus = (typeof MessageStatus)[keyof typeof MessageStatus]
+
+
+export const ToolCallState = {
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+  ERROR: 'ERROR'
+} as const
+
+export type ToolCallState = (typeof ToolCallState)[keyof typeof ToolCallState]

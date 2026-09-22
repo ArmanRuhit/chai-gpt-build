@@ -386,7 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Conversation: 'Conversation',
-  Message: 'Message'
+  Message: 'Message',
+  ToolCall: 'ToolCall'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "conversation" | "message"
+    modelProps: "user" | "conversation" | "message" | "toolCall"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +629,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ToolCall: {
+      payload: Prisma.$ToolCallPayload<ExtArgs>
+      fields: Prisma.ToolCallFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ToolCallFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ToolCallFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>
+        }
+        findFirst: {
+          args: Prisma.ToolCallFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ToolCallFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>
+        }
+        findMany: {
+          args: Prisma.ToolCallFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>[]
+        }
+        create: {
+          args: Prisma.ToolCallCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>
+        }
+        createMany: {
+          args: Prisma.ToolCallCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ToolCallCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>[]
+        }
+        delete: {
+          args: Prisma.ToolCallDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>
+        }
+        update: {
+          args: Prisma.ToolCallUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>
+        }
+        deleteMany: {
+          args: Prisma.ToolCallDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ToolCallUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ToolCallUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>[]
+        }
+        upsert: {
+          args: Prisma.ToolCallUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ToolCallPayload>
+        }
+        aggregate: {
+          args: Prisma.ToolCallAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateToolCall>
+        }
+        groupBy: {
+          args: Prisma.ToolCallGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolCallGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ToolCallCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ToolCallCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -712,6 +787,23 @@ export const MessageScalarFieldEnum = {
 export type MessageScalarFieldEnum = (typeof MessageScalarFieldEnum)[keyof typeof MessageScalarFieldEnum]
 
 
+export const ToolCallScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  messageId: 'messageId',
+  toolCallId: 'toolCallId',
+  toolName: 'toolName',
+  input: 'input',
+  output: 'output',
+  state: 'state',
+  errorText: 'errorText',
+  createdAt: 'createdAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type ToolCallScalarFieldEnum = (typeof ToolCallScalarFieldEnum)[keyof typeof ToolCallScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -726,6 +818,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -833,6 +932,20 @@ export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'J
  * Reference to a field of type 'QueryMode'
  */
 export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
+ * Reference to a field of type 'ToolCallState'
+ */
+export type EnumToolCallStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ToolCallState'>
+    
+
+
+/**
+ * Reference to a field of type 'ToolCallState[]'
+ */
+export type ListEnumToolCallStateFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ToolCallState[]'>
     
 
 
@@ -962,6 +1075,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   conversation?: Prisma.ConversationOmit
   message?: Prisma.MessageOmit
+  toolCall?: Prisma.ToolCallOmit
 }
 
 /* Types for Logging */

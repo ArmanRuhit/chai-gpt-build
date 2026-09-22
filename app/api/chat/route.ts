@@ -1,4 +1,4 @@
-import { loadChatMessages, saveChatMessages } from "@/features/ai/actions/chat-store";
+import { loadChatMessages, saveChatMessages, saveToolCalls } from "@/features/ai/actions/chat-store";
 import { chatTools } from "@/features/ai/tools";
 import { getChatModel } from "@/features/ai/utils/model";
 import { requireUser } from "@/features/auth/action/require-user";
@@ -72,11 +72,12 @@ export async function POST(req: Request) {
             if(InvalidToolInputError.isInstance(error)) {
                 return "The model called a tool with invalid inputs. Please try again."
             }
-            return "Something went wrong while generating the response. Please try againg."
+            return "Something went wrong while generating the response. Please try again."
            },
            onEnd:async({messages:finalMessages})=>{
             try {
                 await saveChatMessages(id , finalMessages , {updateTitle:false})
+                await saveToolCalls(id, finalMessages);
             } catch (error) {
                 console.error(error);
             }

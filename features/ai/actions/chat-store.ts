@@ -1,8 +1,8 @@
 "use server";
 
-import { isTextUIPart, type UIMessage } from "ai";
 import type { Prisma } from "@/lib/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { getToolName, isTextUIPart, isToolUIPart, type UIMessage } from "ai";
 
 /** Extracts plain text from an AI SDK `UIMessage` by joining all text parts. */
 function getMessageText(message: UIMessage) {
@@ -106,4 +106,49 @@ export async function saveChatMessages(
           : conversation.title,
     },
   });
+}
+
+/**
+ * Persists tool invocations from assistant messages into the ToolCall table.
+ * Message `parts` remain the replay source; this table makes calls queryable.
+ */
+export async function saveToolCalls(
+  conversationId: string,
+  messages: UIMessage[]
+) {
+  for (const message of messages) {
+    if(message.role !== "assistant") continue;
+
+    for(const part of message.parts) {
+      if(!isToolUIPart(part)) continue;
+
+      const input = (part.input ?? {}) as Prisma.InputJsonValue;
+
+      const output = part.state === "output-available" ? (part.output as Prisma.InputJsonValue) : undefined;
+
+      const errorText = part.state === "output-error" ? part.errorText : undefined;
+
+      const state = part.state === "output-available" ? "SUCCESS" : part.state === "output-error" ? "ERROR" : "PENDING";
+
+      const data = {
+        messageId: message.id,
+        input,
+        output,
+        errorText,
+        state,
+        finishedAt: state === "PENDING" ? undefined : new Date(),
+      } as const;
+
+      await prisma.toolCall.upsert({
+        where: { toolCallId: part.toolCallId },
+        create: {
+          conversationId,
+          toolCallId: part.toolCallId,
+          toolName: getToolName(part),
+          ...data,
+        },
+        update: data,
+      });
+    }
+  }
 }

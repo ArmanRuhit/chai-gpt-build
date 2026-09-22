@@ -13,9 +13,9 @@ const inputSchema = z.object({
         .number()
         .int()
         .min(1)
-        .max(10)
+        .max(5)
         .default(5)
-        .describe("How many results to return (1-10). Defaults to 5.")
+        .describe("How many results to return (1-5). Defaults to 5.")
 });
 
 

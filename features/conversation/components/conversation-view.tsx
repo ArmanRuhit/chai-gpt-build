@@ -40,7 +40,7 @@ export const ConversationView = ({ conversationId, initialMessages, initialModel
         })
     }), []);
 
-    const { messages, sendMessage, status } = useChat({
+    const { messages, sendMessage, status, error, regenerate } = useChat({
         id: conversationId,
         messages: initialMessages,
         transport,
@@ -94,14 +94,20 @@ export const ConversationView = ({ conversationId, initialMessages, initialModel
             {messages.length === 0 ? (
                 <ChatEmpty />
             ) : (
-                <ChatMessages messages={messages} status={status} />
+                <ChatMessages 
+                    messages={messages} 
+                    status={status} 
+                    error={error}
+                    onRetry={() => void regenerate()} 
+                />
             )}
 
             <ChatComposer
                 onSend={(text) => {
                     void sendMessage({ text });
                 }}
-                isSending={status !== "ready"}
+                isSending={status === "submitted" || status === "streaming"}
+
                 autoFocus
             />
         </div>
