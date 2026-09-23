@@ -9,6 +9,7 @@ import {
   PinOffIcon,
   PlusIcon,
   Trash2Icon,
+  GitBranchIcon
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
@@ -110,6 +111,27 @@ export function AppSidebar() {
   );
 }
 
+/** Groups conversations into roots and a parent -> children map for tree rendering */
+function buildConversationTree(conversations: Conversation[]) {
+  const ids = new Set(conversations.map((conversation) => conversation.id));
+  const childrenByParent = new Map<string, Conversation[]>();
+  const roots: Conversation[] = [];
+
+  for (const conversation of conversations) {
+    const parentId = conversation.parentConversationId;
+    if(parentId && ids.has(parentId)) {
+      const siblings = childrenByParent.get(parentId) ?? [];
+      siblings.push(conversation);
+      childrenByParent.set(parentId, siblings);
+    } else {
+      roots.push(conversation);
+    }
+  }
+
+  return { roots, childrenByParent };
+}
+
+
 /** Renders the conversation list with loading skeletons or an empty-state message. */
 function ChatList({
   conversations,
@@ -138,13 +160,18 @@ function ChatList({
     );
   }
 
+  const { roots, childrenByParent } = buildConversationTree(conversations ?? []);
+
   return (
     <>
-      {conversations.map((conversation) => (
+      {roots.map((conversation) => (
         <ChatItem
           key={conversation.id}
           conversation={conversation}
           isActive={activeId === conversation.id}
+          activeId={activeId}
+          childrenByParent={childrenByParent}
+          depth={0}
         />
       ))}
     </>
@@ -155,9 +182,15 @@ function ChatList({
 function ChatItem({
   conversation,
   isActive,
+  activeId,
+  childrenByParent,
+  depth,
 }: {
   conversation: Conversation;
   isActive: boolean;
+  activeId: string | undefined;
+  childrenByParent: Map<string, Conversation[]>;
+  depth: number;
 }) {
   const updateConversation = useUpdateConversation();
   const deleteConversation = useDeleteConversation(
@@ -171,14 +204,20 @@ function ChatItem({
     updateConversation.mutate({ id: conversation.id, title: next });
   }
 
+  const children = childrenByParent.get(conversation.id) ?? [];
+
   return (
+    <>
     <SidebarMenuItem>
       <SidebarMenuButton
         isActive={isActive}
         tooltip={conversation.title}
         render={<Link href={`/c/${conversation.id}`} />}
-        className={cn(isActive && "font-medium")}
+        className={cn(isActive && "font-medium", depth > 0 && "pl-6")}
       >
+        {depth > 0 ? (
+          <GitBranchIcon className="size-3.5 shrink-0 text-muted-foreground"/>
+        ) : null}
         <span className="truncate">{conversation.title}</span>
       </SidebarMenuButton>
 
@@ -221,6 +260,18 @@ function ChatItem({
         </DropdownMenuContent>
       </DropdownMenu>
     </SidebarMenuItem>
+
+    {children.map((child) => (
+      <ChatItem 
+        key={child.id}
+        conversation={child}
+        isActive={activeId === child.id}
+        activeId={activeId}
+        childrenByParent={childrenByParent}
+        depth={depth + 1}
+      />
+    ))}
+    </>
   );
 }
 

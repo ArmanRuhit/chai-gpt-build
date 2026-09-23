@@ -14,6 +14,9 @@ import { ChatComposer } from './chat-composer';
 import { DEFAULT_MODEL_ID } from '@/features/ai/config/models';
 import { ModelPicker } from './model-picker';
 import { updateConversationModel } from '../actions/conversation-actions';
+import { useCreateBranch } from "@/features/branching/hooks/use-branches";
+import { BranchBar } from '@/features/branching/components/branch-bar';
+
 
 type ConversationViewProps = {
     conversationId: string;
@@ -52,7 +55,8 @@ export const ConversationView = ({ conversationId, initialMessages, initialModel
         onError: (error) => {
             toast.error(error.message);
         },
-    })
+    });
+    const { mutate: createBranch, isPending: isBranching, variables } = useCreateBranch();
     const title =
     conversations?.find((item) => item.id === conversationId)?.title ?? "Chat";
 
@@ -91,6 +95,8 @@ export const ConversationView = ({ conversationId, initialMessages, initialModel
                 )}
             </header>
 
+            <BranchBar conversationId={conversationId}></BranchBar>
+
             {messages.length === 0 ? (
                 <ChatEmpty />
             ) : (
@@ -99,6 +105,9 @@ export const ConversationView = ({ conversationId, initialMessages, initialModel
                     status={status} 
                     error={error}
                     onRetry={() => void regenerate()} 
+                    onBranch={(messageId) => createBranch({ conversationId, messageId })}
+                branchingMessageId={isBranching ? variables?.messageId ?? null : null}
+                branchDisabled={status !== "ready"}
                 />
             )}
 
