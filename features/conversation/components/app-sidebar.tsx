@@ -43,6 +43,17 @@ import {
   useUpdateConversation,
 } from "@/features/conversation/hooks/use-conversation";
 import { cn } from "@/lib/utils";
+import { useState } from "react"; 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
 
 type Conversation = NonNullable<
   ReturnType<typeof useConversations>["data"]
@@ -205,6 +216,7 @@ function ChatItem({
   }
 
   const children = childrenByParent.get(conversation.id) ?? [];
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
     <>
@@ -213,12 +225,13 @@ function ChatItem({
         isActive={isActive}
         tooltip={conversation.title}
         render={<Link href={`/c/${conversation.id}`} />}
-        className={cn(isActive && "font-medium", depth > 0 && "pl-6")}
+        className={cn(isActive && "font-medium")}
+        style={depth > 0 ? { paddingLeft: 12 + depth * 12} : undefined}
       >
         {depth > 0 ? (
           <GitBranchIcon className="size-3.5 shrink-0 text-muted-foreground"/>
         ) : null}
-        <span className="truncate">{conversation.title}</span>
+        <span className="min-w-0 truncate">{conversation.title}</span>
       </SidebarMenuButton>
 
       <DropdownMenu>
@@ -252,7 +265,7 @@ function ChatItem({
           <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
-            onClick={() => deleteConversation.mutate(conversation.id)}
+            onClick={() => setConfirmOpen(true)}
           >
             <Trash2Icon />
             Delete
