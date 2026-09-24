@@ -1,14 +1,25 @@
 # ChaiGPT
 
-A ChatGPT-style AI chat app built with Next.js, the Vercel AI SDK, and Prisma. The model can call a web search tool mid-conversation, stream the tool execution, and answer from real-time results.
+A ChatGPT-style AI chat app built with Next.js, the Vercel AI SDK, and Prisma. The model can call a web search tool mid-conversation, stream the tool execution, and answer from real-time results — and users can branch a conversation from any message and continue independently.
 
 ## Features
+
+**AI tools**
 
 - **AI tool calling** — the model decides when it needs the web, calls the `web_search` tool, and keeps generating from the results (multi-step, up to 5 steps)
 - **Streamed tool execution** — search progress, results, and failures render inline as the response streams
 - **Web search via Tavily** — provider adapter normalizes results into `title`, `url`, `snippet`, `publishedAt`
 - **Tool call persistence** — every invocation is stored in a queryable `ToolCall` table; full message parts replay on reload
-- Streaming chat with persisted conversation history
+
+**Conversation branching**
+
+- **Branch from any message** — fork a chat into a new conversation that keeps the shared history up to the fork point
+- **Branch navigation** — header bar with `Branched from <title>` and a sibling switcher (`N of M`, prev/next)
+- **Branch management** — rename, pin, and delete like any chat; deleting a parent keeps its branches alive
+- **Sidebar tree** — branches indent under their parent with a branch icon
+
+**Chat**
+
 - Multi-provider model support (DeepSeek, OpenAI) via the AI SDK provider registry
 - Per-conversation model selection at chat start
 - Clerk authentication, PostgreSQL persistence with Prisma
@@ -19,6 +30,7 @@ A ChatGPT-style AI chat app built with Next.js, the Vercel AI SDK, and Prisma. T
 - Vercel AI SDK 7 (`ai`, `@ai-sdk/openai`, `@ai-sdk/deepseek`, `@ai-sdk/react`)
 - Zod 4 for tool input schemas
 - Tavily Search API
+- TanStack Query for server-state caching (conversations, messages, branch context)
 - Prisma 7 + PostgreSQL
 - Clerk authentication
 
@@ -64,24 +76,42 @@ Get a free Tavily key at [tavily.com](https://tavily.com) (1,000 credits/month).
 
 The model chooses when to call the tool (`toolChoice: "auto"`). The tool description is the main lever for how eagerly it searches.
 
+### Conversation branching
+
+A branch is a `Conversation` row linked to its parent, with the fork point recorded:
+
+- `Conversation.parentConversationId` — null for root chats, set for branches
+- `Conversation.forkedAtMessageId` — the message the branch continues from
+
+Creating a branch copies every message up to and including the fork point into a new conversation inside a transaction, preserving `createdAt` and `parts` — so tool cards and citations replay in the branch automatically. A branch is still just a conversation, so the chat route, history loading, and rename/pin/delete all work unchanged.
+
+- `features/branching/actions/branch-actions.ts` — `createBranch` (transactional prefix copy), `getBranchContext` (parent + siblings forked from the same message)
+- `features/branching/hooks/use-branches.ts` — `useBranchContext`, `useCreateBranch`
+- `features/branching/components/branch-bar.tsx` — `Branched from <title>` plus the `N of M` sibling switcher
+- `features/conversation/components/app-sidebar.tsx` — `buildConversationTree` nests branches under their parent
+
+Deleting a parent chat keeps its branches (`onDelete: SetNull`); the delete dialog tells the user how many branches will survive.
+
 ### Persistence
 
 | Model | Purpose |
 | --- | --- |
-| `Conversation` | Thread metadata, per-thread model |
+| `Conversation` | Thread metadata, per-thread model, branch link (`parentConversationId`, `forkedAtMessageId`) |
 | `Message` | Full `parts` JSON, so tool calls replay in the UI |
 | `ToolCall` | Queryable audit trail: `toolName`, `input`, `output`, `state` (`PENDING`/`SUCCESS`/`ERROR`), `errorText`, timestamps |
 
 ### UI
 
 - `features/conversation/components/tool-call.tsx` — collapsible tool card: spinner while searching, source list with links and snippets when done, destructive alert on failure
-- `features/conversation/components/chat-messages.tsx` — renders text, reasoning, and tool parts; shows a retry banner when a response fails
+- `features/conversation/components/chat-messages.tsx` — renders text, reasoning, and tool parts; hover action to branch from a message; retry banner when a response fails
+- `features/branching/components/branch-bar.tsx` — branch lineage and sibling navigation under the chat header
 
 ## Demo Prompts
 
 - `Search the web for today's AI news headlines` — basic tool call
 - `What is the latest Next.js version and its release date? Confirm with two independent sources, then list breaking changes mentioned in the release notes.` — multi-step verification
 - `Summarize the second source you found and give me its URL.` — follow-up that reuses stored tool results
+- **Branching:** open any chat, hover a message → branch icon → ask a different follow-up in the new branch; the header shows `2 of 2` and the sidebar nests the branch under its parent
 
 ## Deployment
 
@@ -101,4 +131,6 @@ The model chooses when to call the tool (`toolChoice: "auto"`). The tool descrip
 
 ## Roadmap
 
-- Phase 2: conversation branching — create branches from any message, switch between them, rename/delete.
+- Phase 1 (done): web search tool calling
+- Phase 2 (done): conversation branching
+- Next ideas: search-result caching, per-request search toggle, message editing with auto-branch, branch-aware regenerate
