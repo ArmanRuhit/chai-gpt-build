@@ -272,6 +272,28 @@ function ChatItem({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this chat?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {children.length > 0
+                ? `This chat has ${children.length} branch${children.length === 1 ? "" : "es"}. They stay in the sidebar with their own history.`
+                : "This permanently deletes the chat and all of its messages."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={deleteConversation.isPending}
+              onClick={() => deleteConversation.mutate(conversation.id)}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SidebarMenuItem>
 
     {children.map((child) => (
