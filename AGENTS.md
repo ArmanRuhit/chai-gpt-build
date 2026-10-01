@@ -24,3 +24,12 @@ Turn off only on "stop adhd mode" or "normal mode". Confirm in one line, then re
 
 Repo conventions always outrank style. Verify with the repo's own commands before claiming done.
 <!-- END:i-have-adhd -->
+
+<!-- BEGIN:claude-md-references -->
+# Scoped CLAUDE.md rules
+
+`CLAUDE.md` in this directory imports this file. Parent scoped rules also apply — read them before working:
+
+- [`../CLAUDE.md`](../CLAUDE.md) — cohort rules: task-first help (Codecrafters brief, no solution code until a failed attempt), update `status.md` and `discussion.md` when work lands.
+- [`../../../CLAUDE.md`](../../../CLAUDE.md) — vault index of scoped instruction files.
+<!-- END:claude-md-references -->

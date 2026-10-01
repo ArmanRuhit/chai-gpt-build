@@ -40,6 +40,20 @@ Each branch should preserve its own history while still sharing the original con
 - Rename/Delete branches
 - Build a clean UI for branch navigation
 
+## Phase 3: Trial System
+
+New users get a limited number of free trial messages; once the quota is used up, chatting is gated until they upgrade.
+
+### Requirements
+
+- `TRIAL_MESSAGE_LIMIT` (env) sets the free message quota per user: missing → `15`, valid number → its value, invalid → `0`
+- Parse the config without `process.env` (e.g. `Bun.env`, or `dotenv`'s `parse()` on the file contents), with whole-string validation: `"2abc"` must not silently become `2`
+- Enforce the quota server-side (chat route/action), not only in the UI — requests past the limit must be rejected
+- Track and persist usage per user so the count survives reloads and new sessions
+- UI: show remaining trial messages, and a clear blocked/upgrade state once exhausted
+- Config module stays side-effect free on import (no scratch `console.log` in final code)
+- Config verified under Bun via env override: `TRIAL_MESSAGE_LIMIT=2abc bun features/auth/trial-config.ts` → `0`, `TRIAL_MESSAGE_LIMIT=25 …` → `25`, unset → `15`
+
 ## Submission Instructions
 
 - Public GitHub Repository
