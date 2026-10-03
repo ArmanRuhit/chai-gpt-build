@@ -2,6 +2,7 @@ import { loadChatMessages, saveChatMessages, saveToolCalls } from "@/features/ai
 import { chatTools } from "@/features/ai/tools";
 import { getChatModel } from "@/features/ai/utils/model";
 import { requireUser } from "@/features/auth/action/require-user";
+import { tryConsumeTrialMessage } from "@/features/auth/trial";
 import { prisma } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
 import { convertToModelMessages, createIdGenerator, createUIMessageStreamResponse, InvalidToolInputError, isStepCount, NoSuchToolError, streamText, toUIMessageStream, type UIMessage } from "ai";
@@ -42,6 +43,14 @@ export async function POST(req: Request) {
     const messages = alreadySaved ? previousMessages : [...previousMessages, message];
 
     if(!alreadySaved){
+        const trial = await tryConsumeTrialMessage(user);
+        if(!trial.allowed) {
+            return Response.json(
+                { code: "TRIAL_LIMIT_REACHED", message: "Trial message limit reached",
+                    used: trial.used, limit: trial.limit, remaining: 0 },
+                { status: 403 },
+            );
+        }
         await saveChatMessages(id, [message]);
     }
 

@@ -80,6 +80,8 @@ export const UserScalarFieldEnum = {
   firstName: 'firstName',
   lastName: 'lastName',
   imageUrl: 'imageUrl',
+  trialMessagesUsed: 'trialMessagesUsed',
+  trialLimitOverride: 'trialLimitOverride',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
