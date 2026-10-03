@@ -28,8 +28,7 @@ Repo conventions always outrank style. Verify with the repo's own commands befor
 <!-- BEGIN:claude-md-references -->
 # Scoped CLAUDE.md rules
 
-`CLAUDE.md` in this directory imports this file. Parent scoped rules also apply — read them before working:
+`CLAUDE.md` in this directory imports this file. Read it before working:
 
-- [`../CLAUDE.md`](../CLAUDE.md) — cohort rules: task-first help (Codecrafters brief, no solution code until a failed attempt), update `status.md` and `discussion.md` when work lands.
-- [`../../../CLAUDE.md`](../../../CLAUDE.md) — vault index of scoped instruction files.
+- [`CLAUDE.md`](CLAUDE.md) — this project's scoped rules.
 <!-- END:claude-md-references -->
