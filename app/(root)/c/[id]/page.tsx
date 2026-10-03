@@ -1,5 +1,7 @@
 import { loadChatMessages } from '@/features/ai/actions/chat-store';
 import { DEFAULT_MODEL_ID } from '@/features/ai/config/models';
+import { requireUser } from '@/features/auth/action/require-user';
+import { getTrialStatus } from '@/features/auth/trial';
 import { getConversation } from '@/features/conversation/actions/conversation-actions';
 import { ConversationView } from '@/features/conversation/components/conversation-view';
 import { notFound } from 'next/navigation';
@@ -14,6 +16,7 @@ type ConversationPageProps = {
  */
 const page = async({params}:ConversationPageProps) => {
     const {id} = await params;
+    const user = await requireUser();
 
     let conversation;
     try {
@@ -23,7 +26,7 @@ const page = async({params}:ConversationPageProps) => {
     }
 
     const initialMessages = await loadChatMessages(id);
-    
+    const trialStatus = getTrialStatus(user);
 
   return (
     <ConversationView
@@ -31,6 +34,7 @@ const page = async({params}:ConversationPageProps) => {
       conversationId={id}
       initialMessages={initialMessages}
       initialModel={conversation.model ?? DEFAULT_MODEL_ID}
+      trialStatus={trialStatus}
     />
   )
 }

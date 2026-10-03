@@ -1,21 +1,19 @@
 import { prisma } from "@/lib/db";
 import type { User } from "@/lib/generated/prisma/client";
-import { parseTrialMessageLimit, readTrialMessageLimitRaw } from "@/features/auth/trial-config";
+import { buildTrialStatus, resolveTrialLimit, type TrialStatus } from "@/features/auth/trial-config";
 
-export type TrialCheck = {
-    allowed: boolean;
-    used: number;
-    limit: number;
-    remaining: number | null;
+export type TrialCheck = TrialStatus & { allowed: boolean };
+
+// Read-only status for the UI — resolves the same rule as consume, no writes.
+export function getTrialStatus(user: User): TrialStatus {
+    return buildTrialStatus(
+        user.trialMessagesUsed,
+        resolveTrialLimit(user.trialLimitOverride)
+    )
 }
 
 export async function tryConsumeTrialMessage(user: User): Promise<TrialCheck> {
-    const envLimit = parseTrialMessageLimit(readTrialMessageLimitRaw());
-    const override = user.trialLimitOverride;
-    const limit =
-        override === -1 ? -1 :
-            override !== null && override > 0 ? override :
-                envLimit; // null → env; 0 / < -1 → policy fallback (pick & document)
+    const limit = resolveTrialLimit(user.trialLimitOverride);
 
     let used = user.trialMessagesUsed;
 
@@ -58,3 +56,5 @@ export async function tryConsumeTrialMessage(user: User): Promise<TrialCheck> {
         };
     }
 }
+
+

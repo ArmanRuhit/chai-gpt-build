@@ -16,18 +16,20 @@ import { ModelPicker } from './model-picker';
 import { updateConversationModel } from '../actions/conversation-actions';
 import { useCreateBranch } from "@/features/branching/hooks/use-branches";
 import { BranchBar } from '@/features/branching/components/branch-bar';
+import type { TrialStatus } from '@/features/auth/trial-config';
 
 
 type ConversationViewProps = {
     conversationId: string;
     initialMessages: UIMessage[];
     initialModel?: string;
+    trialStatus: TrialStatus;
 };
 
 /**
  * Main chat view — header, message list (or empty state), and composer with streaming.
  */
-export const ConversationView = ({ conversationId, initialMessages, initialModel = DEFAULT_MODEL_ID }: ConversationViewProps) => {
+export const ConversationView = ({ conversationId, initialMessages, initialModel = DEFAULT_MODEL_ID, trialStatus }: ConversationViewProps) => {
 
     const queryClient = useQueryClient();
     const { data: conversations } = useConversations();
@@ -109,6 +111,12 @@ export const ConversationView = ({ conversationId, initialMessages, initialModel
                 branchingMessageId={isBranching ? variables?.messageId ?? null : null}
                 branchDisabled={status !== "ready"}
                 />
+            )}
+
+            {trialStatus.remaining !== null && (
+                <p className="mx-auto w-full max-w-3xl px-4 pb-1 text-xs text-muted-foreground md:px-6">
+                    {trialStatus.remaining} of {trialStatus.limit} free messages left
+                </p>
             )}
 
             <ChatComposer
