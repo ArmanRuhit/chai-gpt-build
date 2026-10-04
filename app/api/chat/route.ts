@@ -1,5 +1,6 @@
 import { loadChatMessages, saveChatMessages, saveToolCalls } from "@/features/ai/actions/chat-store";
 import { chatTools } from "@/features/ai/tools";
+import { describeProviderCreditError } from "@/features/ai/utils/provider-errors";
 import { getChatModel } from "@/features/ai/utils/model";
 import { requireUser } from "@/features/auth/action/require-user";
 import { tryConsumeTrialMessage } from "@/features/auth/trial";
@@ -75,6 +76,10 @@ export async function POST(req: Request) {
            originalMessages:messages,
            generateMessageId:createIdGenerator({prefix:"msg" , size:16}),
            onError: (error) => {
+            const creditError = describeProviderCreditError(error);
+            if (creditError) {
+                return creditError;
+            }
             if(NoSuchToolError.isInstance(error)) {
                 return "The model tried to call an unknown tool. Please try again."
             }
