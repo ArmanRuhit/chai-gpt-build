@@ -4,9 +4,8 @@ export type TrialStatus = {
     remaining: number | null;
 }
 
-export function parseTrialMessageLimit(raw : string | undefined): number {
-    if(raw === undefined)
-        return 15;
+export function parseTrialMessageLimit(raw: string | undefined): number {
+    if (raw === undefined) return 15;
 
     const parsed = Number(raw.trim());
 
@@ -14,11 +13,13 @@ export function parseTrialMessageLimit(raw : string | undefined): number {
 }
 
 export function readTrialMessageLimitRaw(): string | undefined {
-    return process.env.TRIAL_MESSAGE_LIMIT
+    return process.env.TRIAL_MESSAGE_LIMIT;
 }
 
 // Single source of truth for the limit rule.
-// -1 -> unlimited; positive override -> absolute; null /0/ < -1 -> env limit
+// -1 -> unlimited; positive override -> absolute; null /0/ < -1 -> env limit.
+// Env values are used as parsed, so TRIAL_MESSAGE_LIMIT=-1 is also unlimited —
+// an intentional demo/dev escape hatch, documented in the README env table.
 export function resolveTrialLimit(override: number | null): number {
     if (override === -1) return -1;
     if (override !== null && override > 0) return override;

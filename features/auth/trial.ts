@@ -9,7 +9,7 @@ export function getTrialStatus(user: User): TrialStatus {
     return buildTrialStatus(
         user.trialMessagesUsed,
         resolveTrialLimit(user.trialLimitOverride)
-    )
+    );
 }
 
 export async function tryConsumeTrialMessage(user: User): Promise<TrialCheck> {
@@ -21,7 +21,7 @@ export async function tryConsumeTrialMessage(user: User): Promise<TrialCheck> {
         await prisma.user.update({
             where: { id: user.id },
             data: { trialMessagesUsed: { increment: 1 } }
-        })
+        });
 
         used = used + 1;
 
@@ -38,13 +38,12 @@ export async function tryConsumeTrialMessage(user: User): Promise<TrialCheck> {
         data: { trialMessagesUsed: { increment: 1 } }
     });
 
-
     if (count === 0) {
         return {
             allowed: false,
             used,
             limit,
-            remaining: 0
+            remaining: 0,
         };
     } else {
         used = used + 1;
@@ -52,7 +51,7 @@ export async function tryConsumeTrialMessage(user: User): Promise<TrialCheck> {
             allowed: true,
             used,
             limit,
-            remaining: limit - used
+            remaining: limit - used,
         };
     }
 }
