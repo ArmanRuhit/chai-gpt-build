@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  LogOutIcon,
   MoreHorizontalIcon,
   PencilIcon,
   PinIcon,
@@ -11,7 +12,7 @@ import {
   Trash2Icon,
   GitBranchIcon
 } from "lucide-react";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useClerk } from "@clerk/nextjs";
 import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
@@ -91,7 +92,7 @@ export function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton tooltip="New chat" render={<Link href="/" />}>
+            <SidebarMenuButton tooltip="New chat" render={<Link href="/new" />}>
               <PlusIcon />
               <span>New chat</span>
             </SidebarMenuButton>
@@ -313,6 +314,7 @@ function ChatItem({
 /** Footer menu with theme toggle and Clerk user account button. */
 function SidebarFooterMenu() {
   const { resolvedTheme, setTheme } = useTheme();
+  const { signOut } = useClerk();
 
   return (
     <SidebarMenu>
@@ -325,6 +327,18 @@ function SidebarFooterMenu() {
           onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
         >
           Toggle theme
+        </Button>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <Button 
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start"
+          onClick={() => void signOut({ redirectUrl: "/" })}
+        >
+          <LogOutIcon className="size-4" />
+          Sign out
         </Button>
       </SidebarMenuItem>
       <SidebarMenuItem>

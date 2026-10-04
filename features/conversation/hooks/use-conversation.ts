@@ -88,7 +88,7 @@ export function useDeleteConversation(activeId?: string) {
             });
 
             if (activeId === id) {
-                router.push("/");
+                router.push("/new");
             }
 
             toast.success("Chat deleted");
