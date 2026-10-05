@@ -2,12 +2,13 @@
 
 import { prisma } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
+import { onBoard } from "./onboard";
 
 /**
  * Ensures the request is authenticated and the user has completed onboarding.
  *
  * @returns The Prisma `User` linked to the current Clerk session.
- * @throws {Error} When the user record does not exist in the database.
+ * @throws {Error} When the session is missing or the user cannot be synced.
  */
 export async function requireUser() {
     const { userId } = await auth.protect();
@@ -17,7 +18,9 @@ export async function requireUser() {
     });
   
     if (!user) {
-      throw new Error("User not found. Complete onboarding first.");
+      // The layout sync (onBoard) can still be in flight when a page renders.
+      // Create the row on demand instead of failing the request.
+      return onBoard();
     }
   
     return user;

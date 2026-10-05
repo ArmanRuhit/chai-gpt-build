@@ -17,21 +17,34 @@ export async function onBoard() {
     }
 
     const email = clerkUser.emailAddresses[0]?.emailAddress ?? null;
+    const profile = {
+        email,
+        firstName: clerkUser.firstName,
+        lastName: clerkUser.lastName,
+        imageUrl: clerkUser.imageUrl
+    };
 
-    return prisma.user.upsert({
-        where: { clerkId: clerkUser.id },
-        create: {
-            clerkId: clerkUser.id,
-            email,
-            firstName: clerkUser.firstName,
-            lastName: clerkUser.lastName,
-            imageUrl: clerkUser.imageUrl
-        },
-        update: {
-            email,
-            firstName: clerkUser.firstName,
-            lastName: clerkUser.lastName,
-            imageUrl: clerkUser.imageUrl
+    try {
+        return await prisma.user.upsert({
+            where: { clerkId: clerkUser.id },
+            create: { clerkId: clerkUser.id, ...profile },
+            update: profile
+        })
+    } catch (error) {
+        // The email can already belong to a row with a different clerkId
+        // (Clerk account recreated, or a different Clerk app). Re-link that
+        // row instead of failing with a unique constraint error.
+        const existingByEmail = email
+            ? await prisma.user.findUnique({ where: { email } })
+            : null;
+
+        if (existingByEmail && existingByEmail.clerkId !== clerkUser.id) {
+            return prisma.user.update({
+                where: { id: existingByEmail.id },
+                data: { clerkId: clerkUser.id, ...profile }
+            });
         }
-    })
+
+        throw error;
+    }
 }
